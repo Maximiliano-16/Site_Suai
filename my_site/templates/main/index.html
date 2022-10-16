@@ -8,9 +8,22 @@
         <!-- класс py-5 создает отступы сверху и снизу блока -->
         <div class="container py-5">
             <h1>Главная страница</h1>
-            <a href="{% url 'users:login' %}">Войти</a>
-            <br>
-            <a href="{% url 'users:signup' %}">Зарегистрироваться</a>
+            {% if request.user.is_authenticated %}
+                <br>
+                <h3>Добро пожаловать {{ request.user.username }}</h3>
+                <a href="{% url 'users:logout' %}">Выйти</a>
+                <br>
+                <a href="{% url 'users:password_change' %}">Сменить пароль</a>
+                <br>
+            {% else %}
+                <a href="{% url 'users:login' %}">Войти</a>
+                <br>
+                <a href="{% url 'users:signup' %}">Зарегистрироваться</a>
+                <br>
+                <a href="{% url 'users:password_reset_from' %}">Забыли пароль?</a>
+                <br>
+            {% endif %}
+
 
         </div>
     </main>
