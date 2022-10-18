@@ -13,7 +13,8 @@ ____
 + хранение хеша пароля с солью
 ____
 В ходе выполнения работы был разработан пользовательский интерфейс при помощи графического редактора [Figma](https://www.figma.com/community)
-![alt text](https://ibb.co/pn6LVJd) <br>
+![alt text]([http://url/to/img.png](https://ibb.co/pn6LVJd))
+ <br>
 <img src="{% static 'img/figma1.png' %}" title="1">
 
 
