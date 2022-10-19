@@ -53,4 +53,6 @@ ____
 ![](../2 курс/1 семестр/Аутентификация/SignUp.png)
 ![](../2 курс/1 семестр/Аутентификация/login.png)
 ![](../2 курс/1 семестр/Аутентификация/PasswordReset.png)
+![login](https://user-images.githubusercontent.com/98755619/196759571-bafc5754-dc3b-4a14-bebb-fe0018477a87.png)
+
 ![](../2 курс/1 семестр/Аутентификация/PasswordChange.png)
