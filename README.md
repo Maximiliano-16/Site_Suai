@@ -56,3 +56,9 @@ ____
 ![login](https://user-images.githubusercontent.com/98755619/196759571-bafc5754-dc3b-4a14-bebb-fe0018477a87.png)
 
 ![](../2 курс/1 семестр/Аутентификация/PasswordChange.png)
+### 4. Описание структура базы данных
+
+| First Header | Second Header |
+|--------------|---------------|
+| Content Cell | Content Cell  |
+| Content Cell | Content Cell  |
