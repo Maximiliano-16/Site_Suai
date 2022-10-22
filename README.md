@@ -219,13 +219,78 @@ def login(request, user, backend=None):
 
 ![как хранятся пароли](https://user-images.githubusercontent.com/98755619/197329672-32ec84a1-5864-42fb-9e6f-97f7d8227e37.png)
 
+Создание хэшированного пароля:
+```sh
+def make_password(password, salt=None, hasher='default'):
+    """
+    Turn a plain-text password into a hash for database storage
+
+    Same as encode() but generate a new random salt. If password is None then
+    return a concatenation of UNUSABLE_PASSWORD_PREFIX and a random string,
+    which disallows logins. Additional random string reduces chances of gaining
+    access to staff or superuser accounts. See ticket #20079 for more info.
+    """
+    if password is None:
+        return UNUSABLE_PASSWORD_PREFIX + get_random_string(UNUSABLE_PASSWORD_SUFFIX_LENGTH)
+    hasher = get_hasher(hasher)
+    salt = salt or hasher.salt()
+    return hasher.encode(password, salt)
+```
+
+Используемые view классы django:
+
+```sh
+app_name = 'users'
+
+urlpatterns = [
+    path('logout/',
+         LogoutView.as_view(template_name='users/logged_out.html'),
+         name='logout'
+         ),
+    path(
+        'signup/',
+        views.SignUp.as_view(),
+        name='signup'
+    ),
+    path(
+        'login/',
+        LoginView.as_view(template_name='users/login.html'),
+        name='login'
+    ),
+    path(
+        'password_change/',
+        PasswordChangeView.as_view(
+            template_name='users/password_change.html'),
+        name='password_change'
+    ),
+    path('password_change/done/',
+         PasswordChangeDoneView.as_view(
+             template_name='users/password_change_done.html'),
+         name='password_change_done'
+         ),
+    path('password_reset_form/',
+         PasswordResetView.as_view(
+             template_name='users/password_reset_form.html'),
+         name='password_reset_from'
+         ),
+    path(
+        'password_reset/done/',
+        PasswordResetDoneView.as_view(
+            template_name='users/password_reset_done.html', ),
+        name='password_reset_done'
+    ),
+    path('reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(
+        template_name='users/password_reset_confirm.html'
+    ),
+         name='password_reset_confirm'),
+    path('reset/done/', PasswordResetCompleteView.as_view(
+        template_name='users/password_reset_complete.html'
+    ),
+         name='password_reset_complete'),
+]
+```
+
 Основные используемые библиотеки
 
 ![используемые библиотеки](https://user-images.githubusercontent.com/98755619/197329700-79aae348-5678-43da-a3ff-cba350bd6d36.png)
-
-Реализция сессий
-
-![сессии1](https://user-images.githubusercontent.com/98755619/197329769-b7fb1210-32db-4c4f-a018-97b76702d268.png)
-![сессии2](https://user-images.githubusercontent.com/98755619/197329776-88b1df92-1afb-4170-9cfa-e0b7767c727c.png)
-![сессии3](https://user-images.githubusercontent.com/98755619/197329790-d3589fd2-c5b6-45af-997a-95d0f5dfdfe3.png)
 
