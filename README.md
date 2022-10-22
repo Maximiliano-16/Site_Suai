@@ -12,7 +12,6 @@ ____
 + валидация пароля
 + хранение хеша пароля с солью
 ____
-<<<<<<< HEAD
 ## Ход работы
 ### 1. Разработка пользовательского интерфейса
 В ходе выполнения работы был разработан пользовательский интерфейс при помощи графического редактора [Figma](https://www.figma.com/community)
@@ -98,5 +97,135 @@ ____
 
 ### 6. Значимые фрагменты кода
 
+Код модели User:
+```sh
+class AbstractUser(AbstractBaseUser, PermissionsMixin):
+    """
+    An abstract base class implementing a fully featured User model with
+    admin-compliant permissions.
 
+    Username and password are required. Other fields are optional.
+    """
+    username_validator = UnicodeUsernameValidator()
+
+    username = models.CharField(
+        _('username'),
+        max_length=150,
+        unique=True,
+        help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
+        validators=[username_validator],
+        error_messages={
+            'unique': _("A user with that username already exists."),
+        },
+    )
+    first_name = models.CharField(_('first name'), max_length=30, blank=True)
+    last_name = models.CharField(_('last name'), max_length=150, blank=True)
+    email = models.EmailField(_('email address'), blank=True)
+    is_staff = models.BooleanField(
+        _('staff status'),
+        default=False,
+        help_text=_('Designates whether the user can log into this admin site.'),
+    )
+    is_active = models.BooleanField(
+        _('active'),
+        default=True,
+        help_text=_(
+            'Designates whether this user should be treated as active. '
+            'Unselect this instead of deleting accounts.'
+        ),
+    )
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+
+    objects = UserManager()
+
+    EMAIL_FIELD = 'email'
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
+
+    class Meta:
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+        abstract = True
+
+    def clean(self):
+        super().clean()
+        self.email = self.__class__.objects.normalize_email(self.email)
+
+    def get_full_name(self):
+        """
+        Return the first_name plus the last_name, with a space in between.
+        """
+        full_name = '%s %s' % (self.first_name, self.last_name)
+        return full_name.strip()
+
+    def get_short_name(self):
+        """Return the short name for the user."""
+        return self.first_name
+
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        """Send an email to this user."""
+        send_mail(subject, message, from_email, [self.email], **kwargs)
+```
+
+Процесс создания сессии при авторизации:
+```sh
+def login(request, user, backend=None):
+    """
+    Persist a user id and a backend in the request. This way a user doesn't
+    have to reauthenticate on every request. Note that data set during
+    the anonymous session is retained when the user logs in.
+    """
+    session_auth_hash = ''
+    if user is None:
+        user = request.user
+    if hasattr(user, 'get_session_auth_hash'):
+        session_auth_hash = user.get_session_auth_hash()
+
+    if SESSION_KEY in request.session:
+        if _get_user_session_key(request) != user.pk or (
+                session_auth_hash and
+                not constant_time_compare(request.session.get(HASH_SESSION_KEY, ''), session_auth_hash)):
+            # To avoid reusing another user's session, create a new, empty
+            # session if the existing session corresponds to a different
+            # authenticated user.
+            request.session.flush()
+    else:
+        request.session.cycle_key()
+
+    try:
+        backend = backend or user.backend
+    except AttributeError:
+        backends = _get_backends(return_tuples=True)
+        if len(backends) == 1:
+            _, backend = backends[0]
+        else:
+            raise ValueError(
+                'You have multiple authentication backends configured and '
+                'therefore must provide the `backend` argument or set the '
+                '`backend` attribute on the user.'
+            )
+    else:
+        if not isinstance(backend, str):
+            raise TypeError('backend must be a dotted import path string (got %r).' % backend)
+
+    request.session[SESSION_KEY] = user._meta.pk.value_to_string(user)
+    request.session[BACKEND_SESSION_KEY] = backend
+    request.session[HASH_SESSION_KEY] = session_auth_hash
+    if hasattr(request, 'user'):
+        request.user = user
+    rotate_token(request)
+    user_logged_in.send(sender=user.__class__, request=request, user=user)
+```
+
+![как хранятся пароли](https://user-images.githubusercontent.com/98755619/197329672-32ec84a1-5864-42fb-9e6f-97f7d8227e37.png)
+
+Основные используемые библиотеки
+
+![используемые библиотеки](https://user-images.githubusercontent.com/98755619/197329700-79aae348-5678-43da-a3ff-cba350bd6d36.png)
+
+Реализция сессий
+
+![сессии1](https://user-images.githubusercontent.com/98755619/197329769-b7fb1210-32db-4c4f-a018-97b76702d268.png)
+![сессии2](https://user-images.githubusercontent.com/98755619/197329776-88b1df92-1afb-4170-9cfa-e0b7767c727c.png)
+![сессии3](https://user-images.githubusercontent.com/98755619/197329790-d3589fd2-c5b6-45af-997a-95d0f5dfdfe3.png)
 
